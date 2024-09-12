@@ -397,9 +397,10 @@ and additional style elements ARGS."
          (svg-width       (+ tag-width (* margin txt-char-width)))
          (svg-height      tag-height)
          (svg-ascent      (plist-get style :ascent))
-         (tag-x  (* (- svg-width tag-width)  alignment))
+         (tag-x  (* (- svg-width tag-width) alignment))
          (text-x (+ tag-x (/ (- tag-width (* (length label) tag-char-width)) 2)))
-         (text-y ascent)
+         ;; 修改 text-y 的计算，将标签高度和文字高度计算结合，确保居中
+         (text-y (+ (/ svg-height 2) (/ font-size 2)))  ;; 中心位置
          (tag-x      (if crop-left  (- tag-x     txt-char-width) tag-x))
          (tag-width  (if crop-left  (+ tag-width txt-char-width) tag-width))
          (text-x     (if crop-left  (- text-x (/ stroke 2)) text-x))
@@ -408,15 +409,18 @@ and additional style elements ARGS."
 
          (svg (svg-create svg-width svg-height)))
 
+    ;; 绘制标签的外边框
     (when (>= stroke 0.25)
       (svg-rectangle svg tag-x 0 tag-width tag-height
                      :fill foreground :rx radius))
+    ;; 绘制标签的内部背景
     (svg-rectangle svg (+ tag-x (/ stroke 2.0)) (/ stroke 2.0)
                        (- tag-width stroke) (- tag-height stroke)
                        :fill background :rx (- radius (/ stroke 2.0)))
+    ;; 绘制文本
     (svg-text svg label
               :font-family font-family :font-weight font-weight  :font-size font-size
-              :fill foreground :x text-x :y  text-y)
+              :fill foreground :x text-x :y text-y)
     (svg-lib--image svg :ascent svg-ascent)))
 
 
